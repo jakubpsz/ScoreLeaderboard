@@ -15,16 +15,15 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping("/scores")
 @Slf4j
-public class ScoreTrackingController implements ScoreController{
+public class ScoreTrackingController {
     @Autowired
     private ScoreService scoreService;
-    @Override
+
     @GetMapping("/top")
     public Flux<Score> getTopScores() {
         return scoreService.getTopScores();
     }
 
-    @Override
     @PostMapping("/")
     public Mono<Void> addOrUpdateScore(@RequestBody Score score) {
         scoreService.addOrUpdateScore(score);
