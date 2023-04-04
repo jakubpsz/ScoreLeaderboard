@@ -9,6 +9,10 @@ public class Score {
         this.scoreValue = scoreValue;
     }
 
+    public void addToScore(int scoreValue) {
+        this.scoreValue += scoreValue;
+    }
+
     public String getUsername() {
         return username;
     }
