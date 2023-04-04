@@ -1,42 +1,32 @@
 package com.jakubpszczolka.ScoreLeaderboard.service;
 
 import com.jakubpszczolka.ScoreLeaderboard.model.Score;
+import com.jakubpszczolka.ScoreLeaderboard.storage.ScoreStorage;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.context.event.ApplicationReadyEvent;
-import org.springframework.context.event.EventListener;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.LinkedList;
-import java.util.List;
 
 @Service
 @Slf4j
 public class ScoreTrackingService implements ScoreService {
-    private static final String PATH_TO_SCORE_FILE = "src/main/resources/scores.csv";
-    private static final String PATH_TO_SCORE_TEST_FILE = "src/main/resources/test_scores.csv";
-
     private static final int TOP_SCORES_TO_DISPLAY = 100;
 
-    private final LinkedList<Score> scores = new LinkedList<>();
+    @Autowired
+    private ScoreStorage scoreStorage;
 
 
     @Override
     public Flux<Score> getTopScores() {
         log.info("Getting top 100 scores in descending order");
-        return Flux.fromIterable(scores)
+        return Flux.fromIterable(scoreStorage.getAll())
                 .take(TOP_SCORES_TO_DISPLAY);
     }
 
     @Override
     public void addOrUpdateScore(Score newScore) {
-        for (int i = 0; i < scores.size(); i++) {
-            Score existingScore = scores.get(i);
+        for (int i = 0; i < scoreStorage.getAll().size(); i++) {
+            Score existingScore = scoreStorage.getFromIndex(i);
             if (doseUsernameMatch(newScore, existingScore)) {
                 updateScore(newScore, i);
                 return;
@@ -45,7 +35,7 @@ public class ScoreTrackingService implements ScoreService {
         addNewScore(newScore);
     }
 
-    private static boolean doseUsernameMatch(Score newScore, Score existingScore) {
+    private boolean doseUsernameMatch(Score newScore, Score existingScore) {
         return existingScore.getUsername().equals(newScore.getUsername());
     }
 
@@ -59,16 +49,16 @@ public class ScoreTrackingService implements ScoreService {
     }
 
     private void updateScoreValue(Score newScore, int index) {
-        Score existingScore = scores.get(index);
+        Score existingScore = scoreStorage.getFromIndex(index);
         log.info("Updating score " + existingScore + " with " + newScore + " at index " + index);
         existingScore.addToScore(newScore.getScoreValue());
-        scores.set(index, existingScore);
+        scoreStorage.setAtIndex(index, existingScore);
     }
 
     private void insertPositiveScoreUpdate(int index) {
         for (int i = index - 1; i >= 0; i--) {
-            Score updatedScore = scores.get(i + 1);
-            Score nextScore = scores.get(i);
+            Score updatedScore = scoreStorage.getFromIndex(i + 1);
+            Score nextScore = scoreStorage.getFromIndex(i);
             if (updatedScore.getScoreValue() < nextScore.getScoreValue()) {
                 log.info("Result of the update " + updatedScore + " under new index " + (i + 1));
                 break;
@@ -76,63 +66,36 @@ public class ScoreTrackingService implements ScoreService {
                 if (i == 0) {
                     log.info("Result of the update " + updatedScore + " under new index " + i);
                 }
-                scores.set(i, updatedScore);
-                scores.set(i + 1, nextScore);
+                scoreStorage.setAtIndex(i, updatedScore);
+                scoreStorage.setAtIndex(i + 1, nextScore);
             }
         }
     }
 
     private void insertNegativeScoreUpdate(int index) {
-        for (int i = index + 1; i < scores.size(); i++) {
-            Score updatedScore = scores.get(i - 1);
-            Score nextScore = scores.get(i);
+        for (int i = index + 1; i < scoreStorage.getAll().size(); i++) {
+            Score updatedScore = scoreStorage.getFromIndex(i - 1);
+            Score nextScore = scoreStorage.getFromIndex(i);
             if (updatedScore.getScoreValue() >= nextScore.getScoreValue()) {
                 log.info("Result of the update " + updatedScore + " under new index " + (i - 1));
                 break;
             } else {
-                if (i == scores.size() - 1) {
+                if (i == scoreStorage.getAll().size() - 1) {
                     log.info("Result of the update " + updatedScore + " under new index " + i);
                 }
-                scores.set(i, updatedScore);
-                scores.set(i - 1, nextScore);
+                scoreStorage.setAtIndex(i, updatedScore);
+                scoreStorage.setAtIndex(i - 1, nextScore);
             }
         }
     }
 
     private void addNewScore(Score newScore) {
-        for (int i = 0; i < scores.size(); i++) {
-            if (newScore.getScoreValue() > scores.get(i).getScoreValue()) {
-                scores.add(i, newScore);
+        for (int i = 0; i < scoreStorage.getAll().size(); i++) {
+            if (newScore.getScoreValue() > scoreStorage.getFromIndex(i).getScoreValue()) {
+                scoreStorage.add(i, newScore);
                 log.info("Adding new score " + newScore + " at index " + i);
                 break;
             }
         }
-    }
-
-    @EventListener(ApplicationReadyEvent.class)
-    private void setUp() {
-        scores.addAll(readScoresFromCsv());
-        scores.sort(Comparator.comparing(Score::getScoreValue).reversed());
-        log.info("Set up complete");
-    }
-
-    private List<Score> readScoresFromCsv() {
-        log.info("Loading scores form csv file");
-        List<Score> scoresFromFile = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(PATH_TO_SCORE_TEST_FILE))) {
-            String line = "";
-            while ((line = br.readLine()) != null) {
-                mapFileToScores(line, scoresFromFile);
-            }
-            log.info("Loaded scores from csv file successfully");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return scoresFromFile;
-    }
-
-    private void mapFileToScores(String line, List<Score> scoresFromFile) {
-        String[] values = line.split(",");
-        scoresFromFile.add(new Score(values[0], Integer.parseInt(values[1])));
     }
 }
