@@ -90,9 +90,14 @@ public class ScoreTrackingService implements ScoreService {
     }
 
     private void addNewScore(Score newScore) {
+        if (newScore.getScoreValue() < scoreStorage.getFromIndex(scoreStorage.getAll().size() - 1).getScoreValue()) {
+            log.info("Adding new score at the bottom of the list");
+            scoreStorage.add(newScore);
+            return;
+        }
         for (int i = 0; i < scoreStorage.getAll().size(); i++) {
-            if (newScore.getScoreValue() > scoreStorage.getFromIndex(i).getScoreValue()) {
-                scoreStorage.add(i, newScore);
+            if (newScore.getScoreValue() >= scoreStorage.getFromIndex(i).getScoreValue()) {
+                scoreStorage.addAtIndex(i, newScore);
                 log.info("Adding new score " + newScore + " at index " + i);
                 break;
             }

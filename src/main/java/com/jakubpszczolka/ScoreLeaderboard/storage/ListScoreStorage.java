@@ -23,7 +23,7 @@ public class ListScoreStorage implements ScoreStorage{
 
 
     @Override
-    public void add(int index, Score score) {
+    public void addAtIndex(int index, Score score) {
         scores.add(index, score);
     }
 
@@ -43,8 +43,8 @@ public class ListScoreStorage implements ScoreStorage{
     }
 
     @Override
-    public void addAtIndex(int index, Score score) {
-        scores.add(index, score);
+    public void add(Score score) {
+        scores.add(score);
     }
 
     @EventListener(ApplicationReadyEvent.class)
