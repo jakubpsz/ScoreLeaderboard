@@ -47,6 +47,11 @@ public class ListScoreStorage implements ScoreStorage{
         scores.add(score);
     }
 
+    @Override
+    public Score deleteFromIndex(int index) {
+        return scores.remove(index);
+    }
+
     @EventListener(ApplicationReadyEvent.class)
     private void setUp() {
         scores.addAll(readScoresFromCsv());

@@ -111,7 +111,6 @@ class ScoreServiceTest {
         Score score = new Score("Tom", 10);
         scoreService.addOrUpdateScore(score);
 
-        scoreStorage.getAll().forEach(System.out::println);
         verify(scoreStorage).addAtIndex(3, score);
         assertEquals("Tom", scoreStorage.getFromIndex(3).getUsername());
         assertEquals(10, scoreStorage.getFromIndex(3).getScoreValue());
@@ -123,7 +122,7 @@ class ScoreServiceTest {
         Score score = new Score("Kate", 550);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(1), scoreCaptor.capture());
+        verify(scoreStorage).addAtIndex(eq(1), scoreCaptor.capture());
         assertEquals("Kate", scoreCaptor.getValue().getUsername());
         assertEquals(850, scoreCaptor.getValue().getScoreValue());
         assertEquals("Kate", scoreStorage.getFromIndex(1).getUsername());
@@ -136,7 +135,7 @@ class ScoreServiceTest {
         Score score = new Score("Kate", 900);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(0), scoreCaptor.capture());
+        verify(scoreStorage).addAtIndex(eq(0), scoreCaptor.capture());
         assertEquals("Kate", scoreCaptor.getValue().getUsername());
         assertEquals(1200, scoreCaptor.getValue().getScoreValue());
         assertEquals("Kate", scoreStorage.getFromIndex(0).getUsername());
@@ -149,7 +148,7 @@ class ScoreServiceTest {
         Score score = new Score("Tsunami", 300);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(2), scoreCaptor.capture());
+        verify(scoreStorage).addAtIndex(eq(2), scoreCaptor.capture());
         assertEquals("Tsunami", scoreCaptor.getValue().getUsername());
         assertEquals(310, scoreCaptor.getValue().getScoreValue());
         assertEquals("Tsunami", scoreStorage.getFromIndex(2).getUsername());
@@ -162,7 +161,7 @@ class ScoreServiceTest {
         Score score = new Score("Tsunami", 290);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(2), scoreCaptor.capture());
+        verify(scoreStorage).addAtIndex(eq(2), scoreCaptor.capture());
         assertEquals("Tsunami", scoreCaptor.getValue().getUsername());
         assertEquals(300, scoreCaptor.getValue().getScoreValue());
         assertEquals("Tsunami", scoreStorage.getFromIndex(2).getUsername());
@@ -175,7 +174,7 @@ class ScoreServiceTest {
         Score score = new Score("Kate", -290);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(2), scoreCaptor.capture());
+        verify(scoreStorage).addAtIndex(eq(2), scoreCaptor.capture());
         assertEquals("Kate", scoreCaptor.getValue().getUsername());
         assertEquals(10, scoreCaptor.getValue().getScoreValue());
         assertEquals("Kate", scoreStorage.getFromIndex(2).getUsername());
@@ -188,9 +187,6 @@ class ScoreServiceTest {
         Score score = new Score("Wojtek", -895);
         scoreService.addOrUpdateScore(score);
 
-        verify(scoreStorage).setAtIndex(eq(3), scoreCaptor.capture());
-        assertEquals("Wojtek", scoreCaptor.getValue().getUsername());
-        assertEquals(5, scoreCaptor.getValue().getScoreValue());
         assertEquals("Wojtek", scoreStorage.getFromIndex(3).getUsername());
         assertEquals(5, scoreStorage.getFromIndex(3).getScoreValue());
         assertEquals(4, scoreStorage.getAll().size());

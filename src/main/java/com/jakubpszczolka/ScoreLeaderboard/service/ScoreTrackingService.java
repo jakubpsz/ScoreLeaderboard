@@ -40,51 +40,47 @@ public class ScoreTrackingService implements ScoreService {
     }
 
     private void updateScore(Score newScore, int index) {
-        updateScoreValue(newScore, index);
+        Score updatedScore = updateScoreValue(newScore, index);
         if (newScore.getScoreValue() > 0) {
-            insertPositiveScoreUpdate(index);
+            insertPositiveScoreUpdate(index, updatedScore);
         } else {
-            insertNegativeScoreUpdate(index);
+            insertNegativeScoreUpdate(index, updatedScore);
         }
     }
 
-    private void updateScoreValue(Score newScore, int index) {
-        Score existingScore = scoreStorage.getFromIndex(index);
+    private Score updateScoreValue(Score newScore, int index) {
+        Score existingScore = scoreStorage.deleteFromIndex(index);
         log.info("Updating score " + existingScore + " with " + newScore + " at index " + index);
         existingScore.addToScore(newScore.getScoreValue());
-        scoreStorage.setAtIndex(index, existingScore);
+        return existingScore;
     }
 
-    private void insertPositiveScoreUpdate(int index) {
+    private void insertPositiveScoreUpdate(int index, Score updatedScore) {
         for (int i = index - 1; i >= 0; i--) {
-            Score updatedScore = scoreStorage.getFromIndex(i + 1);
             Score nextScore = scoreStorage.getFromIndex(i);
             if (updatedScore.getScoreValue() < nextScore.getScoreValue()) {
                 log.info("Result of the update " + updatedScore + " under new index " + (i + 1));
+                scoreStorage.addAtIndex(i + 1, updatedScore);
                 break;
-            } else {
-                if (i == 0) {
-                    log.info("Result of the update " + updatedScore + " under new index " + i);
-                }
-                scoreStorage.setAtIndex(i, updatedScore);
-                scoreStorage.setAtIndex(i + 1, nextScore);
+            } else if (i == 0) {
+                log.info("Result of the update " + updatedScore + " under new index " + i);
+                scoreStorage.addAtIndex(i, updatedScore);
+
             }
         }
     }
 
-    private void insertNegativeScoreUpdate(int index) {
-        for (int i = index + 1; i < scoreStorage.getAll().size(); i++) {
-            Score updatedScore = scoreStorage.getFromIndex(i - 1);
+    private void insertNegativeScoreUpdate(int index, Score updatedScore) {
+        for (int i = index; i < scoreStorage.getAll().size(); i++) {
             Score nextScore = scoreStorage.getFromIndex(i);
             if (updatedScore.getScoreValue() >= nextScore.getScoreValue()) {
-                log.info("Result of the update " + updatedScore + " under new index " + (i - 1));
+                log.info("Result of the update " + updatedScore + " under new index " + (i));
+                scoreStorage.addAtIndex(i, updatedScore);
                 break;
-            } else {
-                if (i == scoreStorage.getAll().size() - 1) {
-                    log.info("Result of the update " + updatedScore + " under new index " + i);
-                }
-                scoreStorage.setAtIndex(i, updatedScore);
-                scoreStorage.setAtIndex(i - 1, nextScore);
+            } else if (i == scoreStorage.getAll().size() - 1) {
+                scoreStorage.add(updatedScore);
+                log.info("Result of the update " + updatedScore + " under new index " + (i + 1) );
+                break;
             }
         }
     }

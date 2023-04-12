@@ -13,4 +13,6 @@ public interface ScoreStorage {
     void setAtIndex(int index, Score score);
 
     void add(Score score);
+
+    Score deleteFromIndex(int index);
 }
